@@ -1,13 +1,27 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Button, theme } from "antd";
 import { Header } from "antd/es/layout/layout";
-import { MenuUnfoldOutlined } from "@ant-design/icons";
+import {
+  MenuUnfoldOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 
 export interface PropsHeader {
-  collapsedd: boolean;
+  collapsed: boolean;
+  selectedKeys: number;
+  activeBoard: number;
+  setCollapsed: (collapsed: boolean) => void;
+  setSelectedKeys: (selectedKeys: number) => void;
 }
 
-const Headers = ({ collapsedd: collapsed }: PropsHeader) => {
+const Headers = ({
+  collapsed,
+  setCollapsed,
+  selectedKeys,
+  setSelectedKeys,
+  activeBoard,
+}: PropsHeader) => {
   const state = useSelector((state: boolean | number) => state);
 
   const {
@@ -20,10 +34,10 @@ const Headers = ({ collapsedd: collapsed }: PropsHeader) => {
         {collapsed ? (
           <Button
             type="text"
-            // icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            icon={collapsed ? <RightOutlined /> : <RightOutlined />}
             onClick={() => {
-              //   setCollapsed(!collapsed);
-              //   setSelectedKeys(1);
+              setCollapsed(!collapsed);
+              setSelectedKeys(1);
             }}
             style={{
               fontSize: "16px",
@@ -37,17 +51,17 @@ const Headers = ({ collapsedd: collapsed }: PropsHeader) => {
             icon={
               collapsed ? (
                 <>
-                  <MenuUnfoldOutlined />
+                  <RightOutlined />
                 </>
               ) : (
                 <>
-                  <MenuUnfoldOutlined onClick={() => console.log(state)} />
+                  <LeftOutlined />
                 </>
               )
             }
             onClick={() => {
-              //   setCollapsed(!collapsed);
-              //   setSelectedKeys(2);
+              setCollapsed(!collapsed);
+              setSelectedKeys(2);
             }}
             style={{
               fontSize: "16px",
