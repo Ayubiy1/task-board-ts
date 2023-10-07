@@ -5,12 +5,24 @@ import { DataTypes, ListsTypes } from "../../data";
 import useSelection from "antd/es/table/hooks/useSelection";
 import { useAppDispatch, useAppSelector } from "../../hooks/hooks";
 import { setEditModal } from "../../redux/reducers";
+import { api } from "../api-creat";
+import { useMutation, useQuery } from "react-query";
 
 interface EditModalType {
   listId: number;
 }
 
 const EditModal = ({ listId }: EditModalType) => {
+  const { isLoading, isError, data } = useQuery("repoData", () => {
+    return api.get("/todo");
+  });
+
+  const mutation = useMutation({
+    mutationFn: (newTodo) => {
+      return api.post("/todo", newTodo);
+    },
+  });
+
   const todoData = useAppSelector((state) => state?.dataa);
   const todoDataId = useAppSelector((state) => state?.boardId);
   const editModal = useAppSelector((state) => state?.editModal);

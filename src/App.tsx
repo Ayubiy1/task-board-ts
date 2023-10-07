@@ -1,17 +1,30 @@
 import React, { useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
-import { Button, Form, Input, Layout, Menu, Modal, theme } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Layout,
+  Menu,
+  Modal,
+  theme,
+  message,
+  Space,
+} from "antd";
 import {
   PlusOutlined,
   UploadOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
 import "./App.css";
-import { Todo } from "./components/todo/Todo.1";
+import { Todo, TodoItem } from "./components/todo/Todo.1";
 import Headers, { PropsHeader } from "./components/todo/header";
 import { useAppDispatch, useAppSelector } from "./hooks/hooks";
 import { DataTypes, ListsTypes, data } from "./data";
 import { setData, setBoardId, setBoard } from "./redux/reducers";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { api } from "./components/api-creat";
+import uuid from "react-uuid";
 
 const { Header, Sider, Content } = Layout;
 export interface ItemsInterface {
@@ -21,32 +34,50 @@ export interface ItemsInterface {
 }
 
 const App = () => {
-  const boardId = useAppSelector((state) => state?.boardId);
+  const queryClient = useQueryClient();
 
-  const dataa = useAppSelector((state) => state?.dataa);
+  const { isLoading, data } = useQuery("todos", () => {
+    return api.get("/todo");
+  });
+
+  const {
+    mutate,
+    isLoading: isLoadingMutate,
+    isError: isErrorMutate,
+  } = useMutation(
+    (data: DataTypes) => {
+      console.log(data);
+      return api.post("/todo", data);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("todos");
+        success();
+      },
+    }
+  );
 
   const dispatch = useAppDispatch();
-
   const [collapsed, setCollapsed] = useState(false);
   const [boardAdd, setBoardAdd] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState(1);
   const [activeBoard, setActiveBoard] = useState(1);
-  // const [activeBoard, setActiveBoard] = useLocalStorageState<number>(
-  //   "selectedKeyss",
-  //   {
-  //     defaultValue: 1,
-  //   }
-  // );
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [messageApi, contextHolder] = message.useMessage();
+  const success = () => {
+    messageApi.open({
+      type: "success",
+      content: "This is a success message",
+    });
+  };
 
   const showModal = () => {
     setIsModalOpen(true);
   };
-
   const handleOk = () => {
     setIsModalOpen(false);
   };
-
   const handleCancel = () => {
     setIsModalOpen(false);
   };
@@ -55,37 +86,37 @@ const App = () => {
     token: { colorBgContainer },
   } = theme.useToken();
 
-  const itemsData: ItemsInterface[] = [
-    {
-      key: 1,
-      icon: <UserOutlined />,
-      label: "nav 1",
-    },
-    {
-      key: 2,
-      icon: <VideoCameraOutlined />,
-      label: "nav 2",
-    },
-    {
-      key: 3,
-      icon: <UploadOutlined />,
-      label: "nav 3",
-    },
-  ];
+  // const onFinishs = (values: any) => {
+  //   mutation({values?.boardName});
+  //   dispatch(setBoard(values.boardName));
+  //   setBoardAdd(false);
+  //   handleCancel();
+  // };
 
   const onFinishs = (values: any) => {
-    // console.log(values?.boardName);
-    dispatch(setBoard(values.boardName));
-    setBoardAdd(false);
-    handleCancel();
+    const newData: DataTypes = {
+      boardName: values.boardName,
+      id: data?.data.length + 1,
+      key: data?.data.length + 1,
+      lists: [],
+    };
+
+    mutate(newData);
+    setIsModalOpen(false);
   };
 
   return (
     <Layout className="border-solid h-[100vh] bg-[#222222]">
+      {contextHolder}
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <div className="demo-logo-vertical" />
+        {isLoadingMutate && (
+          <>
+            <p className="m-0 text-center text-white my-4">Loading...</p>
+          </>
+        )}
+
         <Menu theme="dark" mode="inline" defaultSelectedKeys={[`1`]}>
-          {dataa?.map((i: DataTypes, index: number) => {
+          {data?.data?.map((i: DataTypes, index: number) => {
             return (
               <Menu.Item
                 onClick={() => {
@@ -138,6 +169,7 @@ const App = () => {
           </Modal>
         </Menu>
       </Sider>
+
       <Layout>
         <Headers
           collapsed={collapsed}
