@@ -1,21 +1,6 @@
 import React, { useState } from "react";
-import { UserOutlined } from "@ant-design/icons";
-import {
-  Button,
-  Form,
-  Input,
-  Layout,
-  Menu,
-  Modal,
-  theme,
-  message,
-  Space,
-} from "antd";
-import {
-  PlusOutlined,
-  UploadOutlined,
-  VideoCameraOutlined,
-} from "@ant-design/icons";
+import { Button, Form, Input, Layout, Menu, Modal, theme, message } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import "./App.css";
 import { Todo, TodoItem } from "./components/todo/Todo.1";
 import Headers, { PropsHeader } from "./components/todo/header";
@@ -24,7 +9,7 @@ import { DataTypes, ListsTypes, data } from "./data";
 import { setData, setBoardId, setBoard } from "./redux/reducers";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { api } from "./components/api-creat";
-import uuid from "react-uuid";
+import "./components/todo/loading.css";
 
 const { Header, Sider, Content } = Layout;
 export interface ItemsInterface {
@@ -34,6 +19,14 @@ export interface ItemsInterface {
 }
 
 const App = () => {
+  const dispatch = useAppDispatch();
+  const [collapsed, setCollapsed] = useState(false);
+  const [boardAdd, setBoardAdd] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState(1);
+  const [deleteId, setDeleteId] = useState(0);
+  const [activeBoard, setActiveBoard] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const queryClient = useQueryClient();
 
   const { isLoading, data } = useQuery("todos", () => {
@@ -56,13 +49,21 @@ const App = () => {
       },
     }
   );
-
-  const dispatch = useAppDispatch();
-  const [collapsed, setCollapsed] = useState(false);
-  const [boardAdd, setBoardAdd] = useState(false);
-  const [selectedKeys, setSelectedKeys] = useState(1);
-  const [activeBoard, setActiveBoard] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const {
+  //   mutate: mutateDelete,
+  //   isLoading: isLoadingDelete,
+  //   isError: isErrorDelete,
+  // } = useMutation(
+  //   () => {
+  //     return api.delete("/todo", deleteId);
+  //   },
+  //   {
+  //     onSuccess: () => {
+  //       queryClient.invalidateQueries("todos");
+  //       success();
+  //     },
+  //   }
+  // );
 
   const [messageApi, contextHolder] = message.useMessage();
   const success = () => {
@@ -115,13 +116,20 @@ const App = () => {
           </>
         )}
 
+        {isLoading && (
+          <div className="loader">
+            <div className="inner one"></div>
+            <div className="inner two"></div>
+            <div className="inner three"></div>
+          </div>
+        )}
         <Menu theme="dark" mode="inline" defaultSelectedKeys={[`1`]}>
           {data?.data?.map((i: DataTypes, index: number) => {
             return (
               <Menu.Item
                 onClick={() => {
                   setActiveBoard(i?.id);
-                  dispatch(setBoardId(index));
+                  dispatch(setBoardId(i?.id));
                 }}
                 key={i?.id}
               >
@@ -129,45 +137,47 @@ const App = () => {
               </Menu.Item>
             );
           })}
+        </Menu>
 
+        {!isLoading && (
           <Button
             className="text-white flex items-center justify-center w-[80%] mx-auto"
             onClick={() => showModal()}
           >
             <PlusOutlined />
           </Button>
-
-          <Modal
-            title="Basic Modal"
-            open={isModalOpen}
-            onOk={handleOk}
-            onCancel={handleCancel}
-            footer={false}
-          >
-            <Form onFinish={onFinishs}>
-              <div className="">
-                <Form.Item
-                  name={"boardName"}
-                  rules={[
-                    { required: true, message: "Board nomini kiriting!!!" },
-                  ]}
-                >
-                  <Input
-                    className="bg-transparent my-2 mb-3 mx-auto w-[90%]"
-                    placeholder="Board name"
-                  />
-                </Form.Item>
-              </div>
-
-              <Button
-                className="flex items-center justify-center ml-auto"
-                htmlType="submit"
+        )}
+        <Modal
+          title="Basic Modal"
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          footer={false}
+        >
+          <Form onFinish={onFinishs}>
+            <div className="">
+              <Form.Item
+                name={"boardName"}
+                rules={[
+                  { required: true, message: "Board nomini kiriting!!!" },
+                ]}
               >
-                Add Board
-              </Button>
-            </Form>
-          </Modal>
-        </Menu>
+                <Input
+                  className="bg-transparent my-2 mb-3 mx-auto w-[90%]"
+                  placeholder="Board name"
+                />
+              </Form.Item>
+            </div>
+
+            <Button
+              className="flex items-center justify-center ml-auto"
+              htmlType="submit"
+            >
+              Add Board
+            </Button>
+          </Form>
+        </Modal>
+        {/* </Menu> */}
       </Sider>
 
       <Layout>

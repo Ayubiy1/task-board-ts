@@ -15,7 +15,7 @@ const initialState: CounterState = {
   value: 0,
   collapsed: false,
   dataa: data,
-  boardId: 0,
+  boardId: 1,
   deleteId: 0,
   editModal: false,
   listId: 1,
